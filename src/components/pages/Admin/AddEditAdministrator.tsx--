@@ -1,0 +1,175 @@
+import React from "react";
+import PageContent from "../../PageContent";
+import usersStore from "../../../Store/UsersStore";
+import leftMenuStore from "../../../Store/LeftMenuStore";
+import { Button, Form, Input, Segment, Grid } from "semantic-ui-react";
+import { withRouter } from 'react-router-dom';
+class AddEditAdministrator extends React.Component<any, any> {
+
+    state = {
+        data: {
+            Username: "",
+            FirstName: "",
+            LastName: "",
+            Password: ""
+        },
+        _id: -1,
+        inputErrors: {},
+    }
+
+    componentDidMount() {
+        this.props.leftMenuStore.activeMenu("Administrators");
+        const _id = this.props.match.params.id;
+        this.setState({ _id }, async () => {
+            if (_id != -1) { //Edit page
+                await this.initEdit(_id)
+            }
+            else {
+                await this.props.usersStore.setUsersData(null);
+            }
+        })
+
+    }
+    initEdit = async (_id: any) => {
+        await this.props.usersStore.getById(_id);
+        const { usersData }: any = this.props.usersStore;
+        let data = {
+            Username: usersData.Username,
+            FirstName: usersData.FirstName,
+            LastName: usersData.LastName
+        }
+        this.setState({ data })
+
+
+    }
+    validate = (data: any) => {
+        const errors: any = {};
+        if (!data.Username)
+            errors.Username = "Username is required";
+        if (this.state._id == -1) {
+            if (!data.Password)
+                errors.Password = "Password is required";
+        }
+
+        return errors;
+    };
+    onChange = (e: any) => this.setState({
+        data: { ...this.state.data, [e.target.name]: e.target.value }
+    });
+    handleSubmit = async (e: any) => {
+        e.preventDefault();
+        const { _id, data }: any = this.state
+        const inputErrors = this.validate(data);
+        this.setState({ inputErrors }); //if there are errors, display them
+        if (Object.keys(inputErrors).length === 0) { // no errors
+            if (_id == -1) {
+                await this.props.usersStore.create(data);
+            }
+            else {
+                await this.props.usersStore.update(_id, data);
+            }
+            this.props.history.push({ pathname: "/Administrators" });
+        }
+    }
+    render() {
+        const { history, usersStore }: any = this.props;
+        const { data, inputErrors }: any = this.state;
+        const { isFormLoading, usersData, error }: any = usersStore;
+        const title = usersData ? `Edit: ${usersData.Username}` : "Add new administrator"
+        return (
+            <>
+                <PageContent
+                    pageTitle={`Administrators - ${title}`}
+                >
+
+                    <Form onSubmit={this.handleSubmit} loading={isFormLoading}>
+                        <Segment>
+
+                            <Grid>
+                                <Grid.Row columns={2}>
+                                    <Grid.Column>
+                                        <Form.Input
+                                            name="Username"
+                                            label='Username'
+                                            placeholder='Username'
+                                            control={Input}
+                                            icon='user'
+                                            iconPosition='left'
+                                            onChange={this.onChange}
+                                            value={data.Username}
+                                            error={inputErrors.Username}
+                                        >
+                                        </Form.Input>
+                                    </Grid.Column>
+                                    {
+                                        !usersData && (
+                                            <Grid.Column>
+                                                <Form.Input
+                                                    name="Password"
+                                                    label='Password'
+                                                    placeholder='Password'
+                                                    icon="lock"
+                                                    iconPosition='left'
+                                                    control={Input}
+                                                    type="password"
+                                                    onChange={this.onChange}
+                                                    value={data.Password}
+                                                    error={inputErrors.Password}
+                                                >
+                                                </Form.Input>
+                                            </Grid.Column>
+                                        )
+                                    }
+                                </Grid.Row>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.Row columns={2}>
+                                    <Grid.Column>
+                                        <Form.Input
+                                            name="FirstName"
+                                            label='First Name'
+                                            placeholder='First Name'
+                                            control={Input}
+                                            onChange={this.onChange}
+                                            value={data.FirstName}
+                                            error={inputErrors.FirstName}
+                                        >
+                                        </Form.Input>
+                                    </Grid.Column>
+                                    <Grid.Column>
+                                        <Form.Input
+                                            name="LastName"
+                                            label='Last Name'
+                                            placeholder='Last Name'
+                                            control={Input}
+                                            onChange={this.onChange}
+                                            value={data.LastName}
+                                            error={inputErrors.LastName}
+                                        >
+                                        </Form.Input>
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                            <Segment textAlign="right" className="borderless noPaddRight">
+                                <Button secondary onClick={() => history.goBack()}>Cancel</Button>
+                                <Button type='submit' primary>Submit</Button>
+                            </Segment>
+                        </Segment>
+
+                    </Form>
+                </PageContent>
+
+
+            </>
+        )
+    }
+}
+const withStore = (BaseComponent: any) => (props: any) => {
+    const store = usersStore();
+    let leftMenuStoreProps: any = leftMenuStore();
+    return <BaseComponent {...props} usersStore={store} leftMenuStore={leftMenuStoreProps} />;
+};
+
+
+export default withStore(withRouter(AddEditAdministrator));

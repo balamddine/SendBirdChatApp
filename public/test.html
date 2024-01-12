@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time NodeJs Chat Application</title>
+</head>
+
+<body>
+    <h1>Real-Time Chat Application</h1>
+
+
+    <div id="messages"></div>
+    <form id="form">
+        <div class="form_input">
+            <label for="input">Send Message</label>
+            <input id="input" autocomplete="off" autofocus />
+        </div>
+        <div class="form_buttons">
+            <button onclick="submitMessage(event)">Send</button>
+        </div>
+    </form>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+        const socket = io();
+
+        socket.on('chat message', getMessages);
+
+        function getMessages(msg) {
+            const item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+        function submitMessage(e) {
+            const input = document.getElementById('input');
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+    </script>
+</body>
+
+</html>

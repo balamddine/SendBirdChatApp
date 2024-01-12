@@ -1,0 +1,162 @@
+import React from "react";
+import PageContent from "../../PageContent";
+import TableGrid from "../../Custom/TableGrid";
+import usersStore from "../../../Store/UsersStore";
+import leftMenuStore from "../../../Store/LeftMenuStore";
+import { Button, Confirm } from "semantic-ui-react";
+import { withRouter } from "react-router-dom";
+class Administrators extends React.Component<any, any> {
+    private readonly pageTitle = "Administrators"
+    private tableRef: any = React.createRef();
+    state = {
+        confirmOpen: false,
+        selectedId: undefined,
+        isAdminRow: undefined
+    }
+
+    async componentDidMount() {
+        await this.props.usersStore.getAll();
+        this.props.leftMenuStore.activeMenu(this.pageTitle);
+    }
+
+    deleteRow = (e: any) => {
+        let _id = e.currentTarget.parentNode.getAttribute("data-token");
+        this.setState({ selectedId: _id, confirmOpen: true })
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    editRow = (e: any) => {
+        let _id = e.currentTarget.parentNode.getAttribute("data-token");
+        this.setState({ selectedId: _id }, () => {
+            this.props.history.push({ pathname: "/administrators/addeditadministrators/" + _id });
+        })
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    addRow = (e: any) => {
+        let _id = e.currentTarget.parentNode.getAttribute("data-token");
+        this.setState({ selectedId: _id }, () => {
+            this.props.history.push({ pathname: "/administrators/addeditadministrators/-1" });
+        })
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    onDeleteConfirm = async () => {
+        let _id = this.state.selectedId;
+        if (_id) {
+            let deleted = await this.props.usersStore.delete(_id);
+            this.setState({ confirmOpen: false })
+        }
+    }
+    changePassword = (e: any) => {
+        let _id = e.currentTarget.parentNode.getAttribute("data-token");
+        this.setState({ selectedId: _id }, () => {
+            this.props.history.push({ pathname: "/administrators/changepassword/" + _id });
+        })
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    pageClick = async (index: any) => {
+        await this.props.usersStore.setCurrentPage(index);
+        await this.props.usersStore.getAll();
+    }
+    actionButtons = (elem: any) => {
+        const isAdmin = elem.Username == "admin";
+        return (
+            <div
+                className="actionButtons"
+                data-token={elem._id}
+            >
+                <Button
+                    data-name="edit_btn"
+                    primary
+                    icon="edit"
+                    title="Edit row"
+                    className="marginRight8"
+                    onClick={this.editRow}
+                >
+                </Button>
+                {
+                    !isAdmin && (
+                        <Button
+                            data-name="delete_btn"
+                            color="red"
+                            icon="trash alternate"
+                            title="Delete row"
+                            onClick={this.deleteRow}
+                        >
+                        </Button>
+                    )
+                }
+
+                <Button
+                    data-name="changePassword_btn"
+                    secondary
+                    icon="lock"
+                    title="Change password"
+                    onClick={this.changePassword}
+                >
+                </Button>
+            </div>
+        )
+    }
+    closeChangePassword = () => {
+        this.setState({ confirmChangePassOpen: false })
+    }
+    render() {
+        return (
+            <>
+                <PageContent
+                    pageTitle={this.pageTitle}
+                >
+                    <div className="gridButtons alignRight">
+                        <Button
+                            color="green"
+                            icon="add"
+                            content="Add new"
+                            onClick={this.addRow}
+                        >
+
+                        </Button>
+                    </div>
+                    <TableGrid
+                        columns={this.props.usersStore.gridColumns}
+                        rows={this.props.usersStore.adminsL}
+                        pageSize={this.props.usersStore.pageSize}
+                        currentPage={this.props.usersStore.currentPage}
+                        maxRowCount={this.props.usersStore.maxRowCount}
+                        pageClick={this.pageClick}
+                        ref={this.tableRef}
+                        showActionButtons={true}
+                        actionButtons={(elem: any) => { return this.actionButtons(elem) }}
+                    >
+
+
+                    </TableGrid>
+                </PageContent>
+
+                <Confirm
+                    open={this.state.confirmOpen}
+                    onCancel={() => {
+                        this.setState({ confirmOpen: false })
+                    }}
+                    content={"Are you sure you want to delete this row?"}
+                    confirmButton={{ content: "Yes" }}
+                    cancelButton={{ content: "No", color: "red" }}
+                    onConfirm={this.onDeleteConfirm}
+                />
+
+            </>
+        )
+    }
+}
+const withStore = (BaseComponent: any) => (props: any) => {
+    const store = usersStore();
+    let leftMenuStoreProps: any = leftMenuStore();
+    return <BaseComponent {...props} usersStore={store} leftMenuStore={leftMenuStoreProps} />;
+};
+
+
+export default withStore(withRouter(Administrators));
+
+

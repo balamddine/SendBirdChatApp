@@ -1,0 +1,131 @@
+import SendbirdChat, { ConnectionHandler, SessionHandler } from "@sendbird/chat";
+import config from "../Data/config.json"
+import { GroupChannel, GroupChannelHandler, GroupChannelModule, MessageCollection, MessageCollectionEventHandler } from "@sendbird/chat/groupChannel";
+import { Constants } from "./Constants";
+import moment from 'moment';
+const { v4 } = require("uuid");
+
+export class SendBirdclss {
+    static sb: any;
+    constructor() {
+        SendBirdclss.sb = null;
+    }
+
+    static UnixtoTime(unixTime: any, format = 'hh:mm A') {
+        let mdate = new Date(unixTime)
+        const formatted = moment(mdate).format(format);
+        return formatted
+    }
+    static getTimeStampHourAgo() {
+        const now = Date.now();
+        // Calculate milliseconds in a week
+        const millisecondsInWeek = 1000 * 60 * 60;
+        // Get the Unix milliseconds of last week by subtracting
+        const lastWeekMillis = now - millisecondsInWeek;
+        return lastWeekMillis
+    }
+    static getProfilePic(user: any) {
+        let folderPth = "assets/users/"
+        let pic = user.ProfilePic ? folderPth + user.ProfilePic : Constants.DEFAULT_USER_PROFILE_IMAGE;
+        return pic;
+    }
+    static getMessages = async (channel: any, timeStamp: any) => {
+        try {
+
+            let messagesParams = {
+                prevResultSize: 30,
+                nextResultSize: 30,
+                includeReactions: true,
+                includeThreadInfo: true,
+                includeParentMessageInfo: true
+            }
+            let res = await channel.getMessagesByTimestamp(timeStamp, messagesParams)
+            return res;
+        }
+        catch (ex) {
+            return undefined;
+        }
+    }
+    static init = () => {
+        SendBirdclss.sb = SendbirdChat.init({
+            appId: config.APP_ID,
+            modules: [new GroupChannelModule()],
+        });
+        const connectionHandler = new ConnectionHandler({
+            onConnected: () => {
+                console.log("onConnected")
+            },
+            onDisconnected: () => {
+                console.log("onDisconnected")
+            },
+            onReconnectStarted: () => {
+                console.log("onReconnectStarted")
+            },
+            onReconnectSucceeded: () => {
+                console.log("onReconnectSucceeded")
+            },
+            onReconnectFailed: () => {
+                console.log("onReconnectFailed")
+            },
+          });
+          
+          SendBirdclss.sb.addConnectionHandler(v4(), connectionHandler);
+    }
+   
+
+    
+
+    static getUser = async (id: any) => {
+        try {
+            // The user is connected to Sendbird server.
+            const user = await SendBirdclss.sb.connect(id);
+            if (user) {
+                return user;
+            }
+        }
+        catch (ex) {
+            return undefined;
+        }
+    }
+
+    static getChannel = async (channelurl: any) => {
+        try {
+            // The user is connected to Sendbird server.
+            const channel = await SendBirdclss.sb.groupChannel.getChannel(channelurl);
+            if (channel) {
+                return channel;
+            }
+        }
+        catch (ex) {
+            return undefined;
+        }
+    }
+
+    static initMessagesEvents(userStore: any) {
+
+        let myChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+        if (myChannel) {
+            const Gchevents = {
+                onMessageReceived: (channel: any, message: any) => {
+                    if (channel.url == myChannel.url) {
+                        userStore.onMessageReceived(message)
+                    }
+                },
+
+                onMessageUpdated: (channel: any, message: any) => {
+
+                },
+                // As messageIds was deprecated since v4.3.1., use messages instead.
+                onMessageDeleted: (channel: any, messageIds: any) => {
+                    // ...
+                }
+            }
+            let groupChannelHandler = new GroupChannelHandler(Gchevents);
+            SendBirdclss.sb.groupChannel.addGroupChannelHandler(v4(), groupChannelHandler)
+        }
+
+
+    }
+
+}
+
