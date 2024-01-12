@@ -25,13 +25,13 @@ class App extends React.Component<any, IProps> {
   }
 
   initApp = () => {
-    
+
   }
 
   checkAuthentication = () => {
-    const {userStore} =this.props;
-    if(!userStore.usersData){
-     return <Redirect to={{ pathname: "/" }} />
+    const { userStore } = this.props;
+    if (!userStore.usersData) {
+      return <Redirect to={{ pathname: "/" }} />
     }
   }
 
@@ -41,7 +41,9 @@ class App extends React.Component<any, IProps> {
       <>
         <Router>
           <Suspense fallback={
-            <Spinner size="massive" />
+            <div className="centered">
+              <Spinner size="large" />
+            </div>
           }>
             <Switch>
               {/* <Route path="/administrators/addeditadministrators/:id" component={AddEditAdministrator} />   
@@ -52,10 +54,10 @@ class App extends React.Component<any, IProps> {
               <Route path="/" component={Login} />
             </Switch>
 
-          </Suspense>     
-          {this.checkAuthentication()}    
+          </Suspense>
+          {this.checkAuthentication()}
         </Router>
-      
+
       </>
     )
   }

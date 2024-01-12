@@ -12,7 +12,7 @@ class ChatMessageGroup extends React.Component<IProps, any> {
         messagesGroup: []
     }
     componentDidMount() {
-        if (!this.ismounted) return;       
+        if (!this.ismounted) return;
     }
     getMessageGroups = () => {
         const { userStore } = this.props;
@@ -46,7 +46,7 @@ class ChatMessageGroup extends React.Component<IProps, any> {
             return (
 
                 messagesGroup.map((group: any, index: any) => {
-                    let formatedDate = group.date;
+                    let formatedDate: any = SendBirdclss.getFormatedDate(group.date);
                     return (
                         <div key={`group_${index}`}>
                             <div className="conversation-start" >

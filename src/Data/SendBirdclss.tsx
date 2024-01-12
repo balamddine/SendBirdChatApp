@@ -6,6 +6,25 @@ import moment from 'moment';
 const { v4 } = require("uuid");
 
 export class SendBirdclss {
+    static getFormatedDate(dateStr: any) {
+        const momentDate = moment(dateStr, 'YYYY-MM-DD');
+        const today = moment();
+        const yesterday = moment().subtract(1, 'days');
+
+        if (momentDate.isSame(today, 'day')) {
+            return 'Today';
+        } else if (momentDate.isSame(yesterday, 'day')) {
+            return 'Yesterday';
+        } else {
+            return momentDate.format('dddd, MMMM Do'); // Fallback for anything beyond the specified range
+        }
+    }
+    static getName(user: any) {
+        if (user) {
+            return user.FirstName + " " + user.LastName
+        }
+    }
+
     static sb: any;
     constructor() {
         SendBirdclss.sb = null;
@@ -26,7 +45,10 @@ export class SendBirdclss {
     }
     static getProfilePic(user: any) {
         let folderPth = "assets/users/"
-        let pic = user.ProfilePic ? folderPth + user.ProfilePic : Constants.DEFAULT_USER_PROFILE_IMAGE;
+        let pic = Constants.DEFAULT_USER_PROFILE_IMAGE
+        if (user) {
+            pic = user.ProfilePic ? folderPth + user.ProfilePic : Constants.DEFAULT_USER_PROFILE_IMAGE;
+        }
         return pic;
     }
     static getMessages = async (channel: any, timeStamp: any) => {
@@ -43,6 +65,7 @@ export class SendBirdclss {
             return res;
         }
         catch (ex) {
+            console.log(ex)
             return undefined;
         }
     }
@@ -51,29 +74,29 @@ export class SendBirdclss {
             appId: config.APP_ID,
             modules: [new GroupChannelModule()],
         });
-        const connectionHandler = new ConnectionHandler({
-            onConnected: () => {
-                console.log("onConnected")
-            },
-            onDisconnected: () => {
-                console.log("onDisconnected")
-            },
-            onReconnectStarted: () => {
-                console.log("onReconnectStarted")
-            },
-            onReconnectSucceeded: () => {
-                console.log("onReconnectSucceeded")
-            },
-            onReconnectFailed: () => {
-                console.log("onReconnectFailed")
-            },
-          });
-          
-          SendBirdclss.sb.addConnectionHandler(v4(), connectionHandler);
-    }
-   
+        // const connectionHandler = new ConnectionHandler({
+        //     onConnected: () => {
+        //         console.log("onConnected")
+        //     },
+        //     onDisconnected: () => {
+        //         console.log("onDisconnected")
+        //     },
+        //     onReconnectStarted: () => {
+        //         console.log("onReconnectStarted")
+        //     },
+        //     onReconnectSucceeded: () => {
+        //         console.log("onReconnectSucceeded")
+        //     },
+        //     onReconnectFailed: () => {
+        //         console.log("onReconnectFailed")
+        //     },
+        //   });
 
-    
+        //   SendBirdclss.sb.addConnectionHandler(v4(), connectionHandler);
+    }
+
+
+
 
     static getUser = async (id: any) => {
         try {
@@ -84,19 +107,21 @@ export class SendBirdclss {
             }
         }
         catch (ex) {
+            console.log(ex)
             return undefined;
         }
     }
 
     static getChannel = async (channelurl: any) => {
         try {
-            // The user is connected to Sendbird server.
+            // The user is connected to Sendbird server.         
             const channel = await SendBirdclss.sb.groupChannel.getChannel(channelurl);
             if (channel) {
                 return channel;
             }
         }
         catch (ex) {
+            console.log(ex)
             return undefined;
         }
     }
@@ -123,7 +148,18 @@ export class SendBirdclss {
             let groupChannelHandler = new GroupChannelHandler(Gchevents);
             SendBirdclss.sb.groupChannel.addGroupChannelHandler(v4(), groupChannelHandler)
         }
+    }
 
+    static sendMessage = (userStore: any, text: any) => {
+        return new Promise((resolve) => {
+            let channel = userStore.getState().ActiveRoom?.user.userChannel.channel
+            if (channel) {
+                channel.sendUserMessage({ message: text }).onSucceeded((message: any) => {
+                    userStore.onMessageSend(message)
+                    resolve(1)
+                });
+            }
+        })
 
     }
 

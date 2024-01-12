@@ -7,6 +7,7 @@ const usersData: any = Helpers.getProperty(Constants.CMS_USER_TOKEN) ? Helpers.g
 
 type IState = {
     isFormLoading: any,
+    isChatRoomLoading: any
     usersData: any,
     error: any,
     usersL: any,
@@ -16,15 +17,16 @@ type IState = {
     SendBirdData: any
     ActiveRoom: any,
     messagesGroup: any
-    
+
 }
 
 const initialState: IState = {
     isFormLoading: false,
+    isChatRoomLoading: true,
     usersData: JSON.parse(usersData),
     error: null,
     SendBirdData: undefined,
-    usersL: [],
+    usersL: undefined,
     maxRowCount: 0,
     currentPage: 1,
     pageSize: Constants.GRID_PAGE_SIZE,
@@ -41,11 +43,14 @@ type IActions = {
     logout: () => any,
     getState: () => any
     setActiveRoom: (user: any) => any
+    setMessages: (message: any) => any
     onMessageReceived: (message: any) => any
+    onMessageSend: (message: any) => any
 }
 
+
 // Define a Zustand store for authentication
-const userStore = create<IState & IActions>((set, get) => ({
+const userStore = create<IState & IActions>()((set, get) => ({
     ...initialState,
     getState: () => {
         return get();
@@ -67,13 +72,13 @@ const userStore = create<IState & IActions>((set, get) => ({
         set({ isFormLoading: true }); // Set loading to true before the request
         try {
             const responce: any = await UsersLayer.getbyData(data);
-            if(responce.status==200){
-                    Helpers.setProperty(Constants.CMS_USER_TOKEN, JSON.stringify(responce.data));
-                    set({ usersData: responce.data, isFormLoading: false });
+            if (responce.status == 200) {
+                Helpers.setProperty(Constants.CMS_USER_TOKEN, JSON.stringify(responce.data));
+                set({ usersData: responce.data, isFormLoading: false });
             }
-           else{
-            set({ usersData: null, error: "can't find user", isFormLoading: false });
-           }
+            else {
+                set({ usersData: null, error: "can't find user", isFormLoading: false });
+            }
 
         } catch (error) {
             set({ usersData: null, error: error, isFormLoading: false });
@@ -84,7 +89,7 @@ const userStore = create<IState & IActions>((set, get) => ({
         set({ usersData: null })
     },
     getActiveChats: async (isAll = false) => {
-        set({ isFormLoading: true, usersL: [] });
+        set({ usersL: [] });
         try {
             let currentPage = get().currentPage;
             let pageSize = get().pageSize;
@@ -109,10 +114,10 @@ const userStore = create<IState & IActions>((set, get) => ({
 
                                     }
 
-                                    let SendbirdUser = await SendBirdclss.getUser(user.SendBirdId);
-                                    if (SendbirdUser) {
-                                        user["SendbirdUser"] = SendbirdUser;
-                                    }
+                                    // let SendbirdUser = await SendBirdclss.getUser(user.SendBirdId);
+                                    // if (SendbirdUser) {
+                                    //     user["SendbirdUser"] = SendbirdUser;
+                                    // }
                                     return user;
                                 }
                             }
@@ -120,17 +125,16 @@ const userStore = create<IState & IActions>((set, get) => ({
                         catch (ex) {
                             console.log(ex)
                         }
-                    }));                
-                    set({ isFormLoading: false, usersL: results, maxRowCount: responce.data.maxRowCount });
+                    }));
+                    if (results) {
+                        set({ isChatRoomLoading: false, usersL: results, maxRowCount: responce.data.maxRowCount });
+                    }
+
                 }
             }
-
-
-
-
         }
         catch (error) {
-            set({ usersL: [], error: error, isFormLoading: false }); // Set loading to false on error
+            set({ usersL: undefined, error: error, isFormLoading: false }); // Set loading to false on error
         }
     },
     getById: async (_id: any) => {
@@ -181,16 +185,19 @@ const userStore = create<IState & IActions>((set, get) => ({
             set({ ActiveRoom: { user: user } })
             return 1;
         }
-
-
     },
-
-    onMessageReceived: (message: any) => {
+    setMessages: (message: any) => {
         let activeRoom = get().ActiveRoom
         let allmessages = activeRoom.user.userChannel.messages;
         allmessages.push(message)
         activeRoom.user.userChannel.messages = allmessages;
         set({ ActiveRoom: activeRoom })
+    },
+    onMessageReceived: (message: any) => {
+        get().setMessages(message)
+    },
+    onMessageSend: (message: any) => {
+        get().setMessages(message)
     }
 }));
 export default userStore;

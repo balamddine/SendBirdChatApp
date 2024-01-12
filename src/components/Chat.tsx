@@ -1,10 +1,11 @@
 /* eslint-disable */
 import React from "react";
-import { Form, Input } from "semantic-ui-react";
+import { Button, ButtonContent, Form, Icon, Input } from "semantic-ui-react";
 import userStore from "../Store/UsersStore";
 import { SendBirdclss } from "../Data/SendBirdclss";
 import ChannelLastChatMessage from "./Custom/ChannelLastChatMessage";
 import ChatMessageGroup from "./Custom/ChatMessageGroup";
+import Spinner from "../Helpers/Spinner";
 interface IProps {
     userStore?: any
 }
@@ -14,7 +15,7 @@ class Chat extends React.Component<IProps, any> {
 
     private ismounted = true;
     state = {
-        RefreshRoom: false
+        sendLoader: false
     }
     componentDidMount() {
         if (!this.ismounted) return;
@@ -25,11 +26,14 @@ class Chat extends React.Component<IProps, any> {
         this.ismounted = false
     }
 
-    initChatPage = () => {
-        SendBirdclss.init();  
+    initChatPage = async () => {
+        SendBirdclss.init();
         const { userStore } = this.props;
-        userStore.getSendBirdData();
-        userStore.getActiveChats();
+        const user = await userStore.getSendBirdData();
+        if (user) {
+            userStore.getActiveChats();
+        }
+
     }
     handleSearch = () => {
 
@@ -41,13 +45,14 @@ class Chat extends React.Component<IProps, any> {
         if (resp) {
             this.scrolltoBottom()
             SendBirdclss.initMessagesEvents(userStore)
-            this.setState({ RefreshRoom: true })
+
         }
     }
     scrolltoBottom = () => {
-        let activechatDv = document.querySelector("div.active-chat");
+        let activechatDv: any = document.querySelector("div.active-chat");
         if (activechatDv) {
-            activechatDv.scrollTop = activechatDv.scrollHeight;
+            activechatDv.scrollTop = activechatDv.scrollHeight + 500;
+
         }
     }
     activateChatStyle = (e: any) => {
@@ -57,10 +62,62 @@ class Chat extends React.Component<IProps, any> {
 
 
     }
+    onInputCapture = (e: any) => {
+        let message_text: any = document.querySelector('div.message_text')
+        let text = message_text.innerText
+        let placeholder: any = document.querySelector('div.placeholder');
+        if (placeholder) {
+            if (text == "") {
+                placeholder.classList.remove('hide');
+            }
+            else {
+                placeholder.classList.add('hide');
+
+            }
+
+        }
+    }
+    onKeyDown = (e: any) => {
+        if (e.keyCode == 13) {
+            this.sendMessage()
+            e.preventDefault();
+        }
+    }
+    restInput = (message_text: any) => {
+
+        this.scrolltoBottom()
+        message_text.innerText = ""
+        let placeholder: any = document.querySelector('div.placeholder');
+        placeholder.classList.remove('hide');
+    }
+    sendMessage = async () => {
+        this.setState({ sendLoader: true })
+        const { userStore } = this.props;
+        let message_text: any = document.querySelector('div.message_text')
+        let text = message_text.innerText;
+        if (!text) return;
+        let res = await SendBirdclss.sendMessage(userStore, text)
+        if (res == 1) {
+            this.restInput(message_text)
+            this.setState({ sendLoader: false })
+        }
+    }
     render() {
         const { userStore } = this.props;
         const nickname = userStore.usersData.Username ? userStore.usersData.Username : "";
         const imgUrl = SendBirdclss.getProfilePic(userStore.usersData)
+        const ToimgUrl = SendBirdclss.getProfilePic(userStore.ActiveRoom ? userStore.ActiveRoom.user : undefined)
+        const Toname = SendBirdclss.getName(userStore.ActiveRoom ? userStore.ActiveRoom.user : undefined)
+
+        if (userStore.isChatRoomLoading) {
+            return (
+                <div className="centered">
+                    <Spinner size="large" />
+                </div>
+
+            )
+        }
+
 
         return (
             <>
@@ -95,11 +152,12 @@ class Chat extends React.Component<IProps, any> {
                                             if (user) {
                                                 const key = `person_${index}`
                                                 const pic = SendBirdclss.getProfilePic(user)
+                                                const name = SendBirdclss.getName(user)
                                                 const mTime: any = SendBirdclss.UnixtoTime(user.userChannel?.lastMessage.createdAt)
                                                 return (
                                                     <li className="person" data-chat={key} key={key} onClick={(e) => this.initChat(e, user)}>
                                                         <img src={pic} alt={user.Username} />
-                                                        <span className="name">{user.Username}</span>
+                                                        <span className="name">{name}</span>
                                                         <span className="time">{mTime}</span>
                                                         <span className="preview">
                                                             <ChannelLastChatMessage
@@ -121,18 +179,43 @@ class Chat extends React.Component<IProps, any> {
                         <div className="rightContainer">
 
                             {
+
                                 userStore.ActiveRoom ? (
 
                                     <>
-                                        <div className="top"><span>To: <span className="name">{userStore.ActiveRoom.user.Username}</span></span></div>
+                                        <div className="top">
+                                            <div className="person noPad noBackground">
+                                                <img src={ToimgUrl} alt={userStore.ActiveRoom.user.Username} />
+                                                <span className="name">{Toname}</span>
+                                            </div>
+                                        </div>
                                         <div className="chat active-chat">
                                             <ChatMessageGroup />
                                         </div>
                                         <div className="write">
-                                            <a href="#" className="write-link attach"></a>
-                                            <input type="text" />
-                                            <a href="#" className="write-link smiley"></a>
-                                            <a href="#" className="write-link send"></a>
+                                            <div className="smiley" >
+                                                <Button icon circular>
+                                                    <Icon name='smile outline' />
+                                                </Button>
+                                            </div>
+                                            <div className="attachement">
+                                                <Button icon circular>
+                                                    <Icon name='attach' />
+                                                </Button>
+                                            </div>
+                                            <div className="message_Input">
+                                                <div className="message_wrapper">
+                                                    <div className="message_text" contentEditable onInputCapture={this.onInputCapture} onKeyDown={this.onKeyDown}>
+                                                    </div>
+                                                    <div className="placeholder">Type a message</div>
+                                                </div>
+                                            </div>
+                                            <div className="send">
+                                                <Button animated='vertical' circular onClick={this.sendMessage} loading={this.state.sendLoader}>
+                                                    <Icon name='send' />
+                                                </Button>
+                                            </div>
+
                                         </div>
                                     </>
                                 ) :

@@ -23,7 +23,7 @@ class ChatMessage extends React.Component<IProps, any> {
             cls = "admin"
         } 
         else {
-            if (Message.sender.id == MeSendBirdId) {
+            if (Message.sender.userId == MeSendBirdId) {
                 cls = "me"
             }
             else {
@@ -39,6 +39,9 @@ class ChatMessage extends React.Component<IProps, any> {
                         )
                     }
                     {Message.message}
+                    <div className="time">
+                        12:40 PM
+                    </div>
                 </div>
             );
         }

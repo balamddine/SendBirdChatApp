@@ -1,11 +1,12 @@
 :root {
   --white: #fff;
   --black: #000;
-  --bg: #f8f8f8;
+  --bg: #dedfdd;
   --grey: #999;
   --dark: #1a1a1a;
   --light: #e6e6e6;
   --blue: #00b0ff;
+  --active:#f0f2f5
 }
 
 body {
@@ -39,7 +40,7 @@ body {
 }
 
 .wrapper {
-  max-width: 1600px;
+  max-width: 1800px;
   margin: 0 auto;
   display: flex;
   width: calc(100% - 38px);
@@ -101,7 +102,7 @@ body {
   width: calc(100% + 2px);
 }
 
-.container .leftContainer .people .person {
+.person {
   position: relative;
   width: 100%;
   padding: 12px 24px 16px;
@@ -109,7 +110,7 @@ body {
   background-color: var(--white);
 }
 
-.container .leftContainer .people .person:after {
+.person:after {
   position: absolute;
   bottom: 0;
   left: 50%;
@@ -121,7 +122,7 @@ body {
   transform: translate(-50%, 0);
 }
 
-.container .leftContainer .people .person img,
+.person img,
 .userInfo img {
   float: left;
   width: 40px;
@@ -132,7 +133,7 @@ body {
   object-fit: cover;
 }
 
-.container .leftContainer .people .person .name {
+.person .name {
   font-size: 14px;
   line-height: 22px;
   color: var(--dark);
@@ -140,7 +141,7 @@ body {
   display: block;
 }
 
-.container .leftContainer .people .person .time {
+.person .time {
   font-size: 14px;
   position: absolute;
   top: 16px;
@@ -150,7 +151,7 @@ body {
   background-color: var(--white);
 }
 
-.container .leftContainer .people .person .preview {
+.person .preview {
   font-size: 14px;
   display: inline-block;
   overflow: hidden !important;
@@ -159,18 +160,19 @@ body {
   text-overflow: ellipsis;
   color: var(--grey);
 }
-.container .leftContainer .people .person.active{
+
+.container .leftContainer .people .person.active {
   cursor: pointer;
 }
+
 .container .leftContainer .people .person.active,
 .container .leftContainer .people .person:hover {
   border: 0;
-  background-color: var(--blue);
+  background-color: var(--active);
 }
 
 .container .leftContainer .people .person.active span,
-.container .leftContainer .people .person:hover span {
-  color: var(--white);
+.container .leftContainer .people .person:hover span { 
   background: transparent;
 }
 
@@ -195,10 +197,7 @@ body {
   background-color: #eceff1;
 }
 
-.container .rightContainer .top span {
-  font-size: 15px;
-  color: var(--grey);
-}
+
 
 .container .rightContainer .top span .name {
   color: var(--dark);
@@ -209,16 +208,30 @@ body {
   position: relative;
   display: none;
   overflow-y: scroll;
+  overflow-x: hidden;
   padding: 20px 35px;
-  height: calc(100% - 134px);
+  padding-bottom: 19px;
+  min-height: calc(100% - 113px);
+  height: calc(100% - 113px);
 }
 
 .container .rightContainer .chat.active-chat {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .container .rightContainer .chat.active-chat .bubble {
   transition-timing-function: cubic-bezier(0.4, -0.04, 1, 1);
+}
+
+.bubble .time {
+  font-size: 10px;
+  color: #667781;
+  display: flex;
+  flex-direction: row-reverse;
+}
+.bubble.you .time {
+  color:#1a1a1a
 }
 
 .container .rightContainer .chat.active-chat .bubble:nth-of-type(1) {
@@ -273,20 +286,54 @@ body {
 
 .container .rightContainer .write {
   position: absolute;
-  bottom: 29px;
-  left: 30px;
-  height: 42px;
-  padding-left: 8px;
-  border: 1px solid var(--light);
+  bottom: 0;
+  padding: 7px;
   background-color: #eceff1;
-  width: calc(100% - 58px);
-  border-radius: 5px;
+  width: 100%;
+  display: flex;
+  align-items: center;
 }
 
-.container .rightContainer .write input {
+.hide {
+  display: none;
+}
+
+.message_wrapper {
+  padding: 9px 12px;
+  background-color: #FFF;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.message_Input {
+  width: calc(100% - 95px);
+  position: relative;
+}
+
+.message_Input .message_text {
+  min-height: 1em;
+  /* prevent height collapsing when there is no text */
+  max-height: 47px;
+  width: 100%;
+  align-content: center;
+  outline: none;
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+}
+
+.message_Input .placeholder {
+  position: absolute;
+  top: 10px;
+  z-index: 1;
+  color: #667781;
+  pointer-events: none;
+}
+
+.container .rightContainer .write .input {
   font-size: 16px;
   float: left;
-  width: 347px;
   height: 40px;
   padding: 0 10px;
   color: var(--dark);
@@ -296,54 +343,33 @@ body {
   font-weight: 400;
 }
 
-.container .rightContainer .write .write-link.attach:before {
-  display: inline-block;
-  float: left;
-  width: 20px;
-  height: 42px;
-  content: "";
-  background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/382994/attachment.png");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.container .rightContainer .write .write-link.smiley:before {
-  display: inline-block;
-  float: left;
-  width: 20px;
-  height: 42px;
-  content: "";
-  background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/382994/smiley.png");
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-.container .rightContainer .write .write-link.send:before {
-  display: inline-block;
-  float: left;
-  width: 20px;
-  height: 42px;
-  margin-left: 11px;
-  content: "";
-  background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/382994/send.png");
-  background-repeat: no-repeat;
-  background-position: center;
+.write button {
+  background: transparent !important;
+  padding: 0px 6px !important;
 }
 
 .container .rightContainer .bubble {
-  font-size: 16px;
+  font-size: 14px;
+  line-height: 18px;
   position: relative;
   display: inline-block;
   clear: both;
   margin-bottom: 8px;
-  padding: 13px 14px;
+  padding-left: 12px;
+  padding: 5px 7px;
   vertical-align: top;
-  border-radius: 8px;
+  border-radius: 5px;
+  min-width: 100px;
+  max-width: 500px;
+    word-wrap: break-word;
 }
+
 .container .rightContainer .bubble.admin {
   width: 100%;
+  max-width: 100%;
   background-color: #fff2b6;
 }
+
 .container .rightContainer .bubble:before {
   position: absolute;
   top: 19px;
@@ -400,7 +426,7 @@ body {
   position: absolute;
   top: 10px;
   display: inline-block;
-  width: 30%;
+  width: 46%;
   height: 1px;
   content: "";
   background-color: var(--light);
@@ -427,6 +453,32 @@ body {
   left: 50%;
   transform: translate(-50%, -50%);
 
+}
+
+.top .person {
+  display: flex;
+  align-items: center;
+}
+
+.top .person::after {
+  display: none;
+}
+
+.noPad {
+  padding: 0px;
+}
+
+.noBackground {
+  background: transparent;
+}
+
+.send button {
+  padding-left: 13px !important;
+  min-height: 25px !important;
+}
+
+body ::-webkit-scrollbar {
+  width: 5px
 }
 
 @keyframes slideFromLeft {
