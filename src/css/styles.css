@@ -369,6 +369,9 @@ body {
   max-width: 100%;
   background-color: #fff2b6;
 }
+.attachement input[type='file']{
+  display: none;
+}
 
 .container .rightContainer .bubble:before {
   position: absolute;

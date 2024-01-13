@@ -1,11 +1,13 @@
-import SendbirdChat, { ConnectionHandler, SessionHandler } from "@sendbird/chat";
+import SendbirdChat, { ConnectionHandler, FileCompat, SessionHandler } from "@sendbird/chat";
 import config from "../Data/config.json"
 import { GroupChannel, GroupChannelHandler, GroupChannelModule, MessageCollection, MessageCollectionEventHandler } from "@sendbird/chat/groupChannel";
 import { Constants } from "./Constants";
 import moment from 'moment';
+import { MultipleFilesMessageCreateParams, UploadableFileInfo } from "@sendbird/chat/message";
 const { v4 } = require("uuid");
 
 export class SendBirdclss {
+
     static getFormatedDate(dateStr: any) {
         const momentDate = moment(dateStr, 'YYYY-MM-DD');
         const today = moment();
@@ -152,15 +154,40 @@ export class SendBirdclss {
 
     static sendMessage = (userStore: any, text: any) => {
         return new Promise((resolve) => {
-            let channel = userStore.getState().ActiveRoom?.user.userChannel.channel
+            let channel:GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
             if (channel) {
                 channel.sendUserMessage({ message: text }).onSucceeded((message: any) => {
                     userStore.onMessageSend(message)
                     resolve(1)
+                }).onFailed((error: any) => {
+                    console.log("Failed to send text message error:" + error)
+
                 });
             }
         })
 
+    }
+    static sendFileMessage = (userStore: any, files: File[]) => {
+        return new Promise((resolve) => {
+            let channel:GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+            if (channel) {
+                let ParamsArr: any = [];
+                Array.from(files).forEach((fle: FileCompat) => {
+                    let fileInfo: any = {
+                        file:fle
+                    };
+                    ParamsArr.push(fileInfo)
+                })
+                let pr:MultipleFilesMessageCreateParams = {fileInfoList:ParamsArr}
+                channel.sendMultipleFilesMessage(pr).onSucceeded((message: any) => {
+                    userStore.onMessageSend(message)
+                    resolve(1)
+                }).onFailed((error: any) => {
+                    console.log("Failed to send file message error:" + error)
+
+                });
+            }
+        });
     }
 
 }

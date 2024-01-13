@@ -14,6 +14,7 @@ class Chat extends React.Component<IProps, any> {
 
 
     private ismounted = true;
+    private attachement: any = React.createRef();
     state = {
         sendLoader: false
     }
@@ -90,6 +91,7 @@ class Chat extends React.Component<IProps, any> {
         let placeholder: any = document.querySelector('div.placeholder');
         placeholder.classList.remove('hide');
     }
+
     sendMessage = async () => {
         this.setState({ sendLoader: true })
         const { userStore } = this.props;
@@ -102,6 +104,25 @@ class Chat extends React.Component<IProps, any> {
             this.setState({ sendLoader: false })
         }
     }
+
+    sendAttachement=async (e: any) => {
+        this.setState({ sendLoader: true })
+        const { userStore } = this.props;
+        const files:File[] = e.target.files;
+        if (files && files.length > 0) {
+            let res = await SendBirdclss.sendFileMessage(userStore, files)
+            if (res == 1) {
+                this.setState({ sendLoader: false })
+            }
+            // files.map((fle: any) => {
+            //     console.log({ fle })
+            // })
+        }
+       
+        e.preventDefault()
+        e.stopPropagation()
+    }
+
     render() {
         const { userStore } = this.props;
         const nickname = userStore.usersData.Username ? userStore.usersData.Username : "";
@@ -199,7 +220,8 @@ class Chat extends React.Component<IProps, any> {
                                                 </Button>
                                             </div>
                                             <div className="attachement">
-                                                <Button icon circular>
+                                                <input type="file" name="attach" ref={this.attachement} multiple={true} style={{ display: "none" }} onChange={(e) => { this.sendAttachement(e) }} />
+                                                <Button icon circular onClick={(e) => { this.attachement.current.click() }}>
                                                     <Icon name='attach' />
                                                 </Button>
                                             </div>
@@ -231,6 +253,7 @@ class Chat extends React.Component<IProps, any> {
             </>
         )
     }
+
 }
 const withStore = (BaseComponent: any) => (props: any) => {
     const userS = userStore();
