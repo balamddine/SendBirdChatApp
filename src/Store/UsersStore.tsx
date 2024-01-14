@@ -46,6 +46,7 @@ type IActions = {
     setMessages: (message: any) => any
     onMessageReceived: (message: any) => any
     onMessageSend: (message: any) => any
+    clearHistory: () => any
 }
 
 
@@ -198,7 +199,14 @@ const userStore = create<IState & IActions>()((set, get) => ({
     },
     onMessageSend: (message: any) => {
         get().setMessages(message)
-    }
+    },
+    clearHistory: () => {
+        let activeRoom = get().ActiveRoom
+        let allmessages = activeRoom.user.userChannel.messages;
+        allmessages = [];
+        activeRoom.user.userChannel.messages = allmessages;
+        set({ ActiveRoom: activeRoom })
+    },
 }));
 export default userStore;
 

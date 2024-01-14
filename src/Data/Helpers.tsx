@@ -1,7 +1,10 @@
 import { Constants } from "./Constants";
 const moment = require('moment');
 export class Helpers {
-   
+    static openLink(url: any) {
+        window.open(url, "_blank")
+    }
+
     static redirect(history: any, name: any) {
         history.push({ pathname: "/" + name })
     }

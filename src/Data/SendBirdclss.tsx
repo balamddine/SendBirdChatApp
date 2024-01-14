@@ -3,10 +3,12 @@ import config from "../Data/config.json"
 import { GroupChannel, GroupChannelHandler, GroupChannelModule, MessageCollection, MessageCollectionEventHandler } from "@sendbird/chat/groupChannel";
 import { Constants } from "./Constants";
 import moment from 'moment';
-import { MultipleFilesMessageCreateParams, UploadableFileInfo } from "@sendbird/chat/message";
+import { MessageRequestHandler, MultipleFilesMessageCreateParams, UploadableFileInfo } from "@sendbird/chat/message";
+import { GroupChannelHandlerParams } from "@sendbird/chat/lib/__definition";
 const { v4 } = require("uuid");
 
 export class SendBirdclss {
+
 
     static getFormatedDate(dateStr: any) {
         const momentDate = moment(dateStr, 'YYYY-MM-DD');
@@ -130,17 +132,18 @@ export class SendBirdclss {
 
     static initMessagesEvents(userStore: any) {
 
-        let myChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+        let myChannel: GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
         if (myChannel) {
-            const Gchevents = {
+            const Gchevents: GroupChannelHandlerParams = {
+                onTypingStatusUpdated: (channel: GroupChannel) => {
+                    if (channel.url == myChannel.url) { }
+                },
                 onMessageReceived: (channel: any, message: any) => {
                     if (channel.url == myChannel.url) {
                         userStore.onMessageReceived(message)
                     }
                 },
-
                 onMessageUpdated: (channel: any, message: any) => {
-
                 },
                 // As messageIds was deprecated since v4.3.1., use messages instead.
                 onMessageDeleted: (channel: any, messageIds: any) => {
@@ -148,13 +151,14 @@ export class SendBirdclss {
                 }
             }
             let groupChannelHandler = new GroupChannelHandler(Gchevents);
+
             SendBirdclss.sb.groupChannel.addGroupChannelHandler(v4(), groupChannelHandler)
         }
     }
 
     static sendMessage = (userStore: any, text: any) => {
         return new Promise((resolve) => {
-            let channel:GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+            let channel: GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
             if (channel) {
                 channel.sendUserMessage({ message: text }).onSucceeded((message: any) => {
                     userStore.onMessageSend(message)
@@ -167,28 +171,52 @@ export class SendBirdclss {
         })
 
     }
-    static sendFileMessage = (userStore: any, files: File[]) => {
+    static sendFileMessage = (userStore: any, fle: any) => {
         return new Promise((resolve) => {
-            let channel:GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+            let channel: GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
             if (channel) {
-                let ParamsArr: any = [];
-                Array.from(files).forEach((fle: FileCompat) => {
-                    let fileInfo: any = {
-                        file:fle
-                    };
-                    ParamsArr.push(fileInfo)
-                })
-                let pr:MultipleFilesMessageCreateParams = {fileInfoList:ParamsArr}
-                channel.sendMultipleFilesMessage(pr).onSucceeded((message: any) => {
-                    userStore.onMessageSend(message)
-                    resolve(1)
-                }).onFailed((error: any) => {
-                    console.log("Failed to send file message error:" + error)
+                let params: any = {
+                    file: fle,
+                    thumbnailSizes: [{ maxWidth: 100, maxHeight: 100 }, { maxWidth: 200, maxHeight: 200 }],
+                };
+                channel.sendFileMessage(params)
+                    .onPending((handler: any) => {
+                        userStore.onMessageSend(handler)
+                        resolve(1)
+                    })
+                    .onSucceeded((message: any) => {
+                        const key = message.reqId
+                        this.removePendingMsgs(key)
+                        userStore.onMessageSend(message)
+                        resolve(1)
+                    })
 
-                });
+                    .onFailed((error: any) => {
+                        console.log("Failed to send file message error:" + error)
+                    });
             }
         });
     }
+
+    static removePendingMsgs = (id: any) => {
+        let messg = document.getElementById(id);
+        if (messg) {
+            messg.remove()
+        }
+    }
+    static clearMessageHistory = async (userStore: any) => {
+        let channel: GroupChannel = userStore.getState().ActiveRoom?.user.userChannel.channel
+        if (channel) {
+            let res = await channel.resetMyHistory();
+            if (res) {
+                userStore.clearHistory();
+                return true;
+            }
+
+        }
+    }
+
+
 
 }
 

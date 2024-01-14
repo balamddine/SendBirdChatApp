@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React from "react";
-import { Button, ButtonContent, Form, Icon, Input } from "semantic-ui-react";
+import { Button, Form, Icon, Input, List, ListContent, ListDescription, ListItem, Popup } from "semantic-ui-react";
 import userStore from "../Store/UsersStore";
 import { SendBirdclss } from "../Data/SendBirdclss";
 import ChannelLastChatMessage from "./Custom/ChannelLastChatMessage";
@@ -15,9 +15,13 @@ class Chat extends React.Component<IProps, any> {
 
     private ismounted = true;
     private attachement: any = React.createRef();
+    private toMenuRef: any = React.createRef();
+
     state = {
-        sendLoader: false
+        sendLoader: false,
+        clearHistoryLoader: false
     }
+
     componentDidMount() {
         if (!this.ismounted) return;
         this.initChatPage();
@@ -105,24 +109,40 @@ class Chat extends React.Component<IProps, any> {
         }
     }
 
-    sendAttachement=async (e: any) => {
+    sendAttachement = async (e: any) => {
         this.setState({ sendLoader: true })
         const { userStore } = this.props;
-        const files:File[] = e.target.files;
+        const files: File[] = e.target.files;
         if (files && files.length > 0) {
-            let res = await SendBirdclss.sendFileMessage(userStore, files)
-            if (res == 1) {
-                this.setState({ sendLoader: false })
-            }
-            // files.map((fle: any) => {
-            //     console.log({ fle })
-            // })
-        }
-       
-        e.preventDefault()
-        e.stopPropagation()
-    }
+            var results: number[] = await Promise.all(Array.from(files).map(async (fle: any, index: any) => {
+                try {
+                    let res = await SendBirdclss.sendFileMessage(userStore, fle)
+                    if (res == 1) {
+                        return index
+                    }
+                }
+                catch (ex) {
+                    console.log(ex)
+                }
+            }));
 
+            if (results && results.length > 0) {
+                this.setState({ sendLoader: false }, () => {
+                    this.scrolltoBottom()
+                })
+            }
+
+
+        }
+    }
+    clearChannelMessages = async () => {
+        const { userStore } = this.props;
+        this.setState({ clearHistoryLoader: true })
+        let res = await SendBirdclss.clearMessageHistory(userStore)
+        if (res) {
+            this.setState({ clearHistoryLoader: false })         
+        }
+    }
     render() {
         const { userStore } = this.props;
         const nickname = userStore.usersData.Username ? userStore.usersData.Username : "";
@@ -174,16 +194,19 @@ class Chat extends React.Component<IProps, any> {
                                                 const key = `person_${index}`
                                                 const pic = SendBirdclss.getProfilePic(user)
                                                 const name = SendBirdclss.getName(user)
-                                                const mTime: any = SendBirdclss.UnixtoTime(user.userChannel?.lastMessage.createdAt)
+                                                const mTime: any = user.userChannel?.lastMessage ? SendBirdclss.UnixtoTime(user.userChannel?.lastMessage.createdAt) : ""
                                                 return (
                                                     <li className="person" data-chat={key} key={key} onClick={(e) => this.initChat(e, user)}>
                                                         <img src={pic} alt={user.Username} />
                                                         <span className="name">{name}</span>
                                                         <span className="time">{mTime}</span>
                                                         <span className="preview">
-                                                            <ChannelLastChatMessage
-                                                                Message={user.userChannel?.lastMessage}
-                                                            />
+                                                            {
+                                                                user.userChannel?.lastMessage &&
+                                                                <ChannelLastChatMessage
+                                                                    Message={user.userChannel?.lastMessage}
+                                                                />
+                                                            }
                                                         </span>
                                                     </li>
                                                 )
@@ -209,8 +232,32 @@ class Chat extends React.Component<IProps, any> {
                                                 <img src={ToimgUrl} alt={userStore.ActiveRoom.user.Username} />
                                                 <span className="name">{Toname}</span>
                                             </div>
+                                            <div className="toMenu">
+                                                <Popup
+                                                    ref={this.toMenuRef}
+                                                    trigger={<Button className="noBackground" icon='bars' size="large" />}
+                                                    basic
+                                                    on={"click"}
+                                                    position="bottom right"
+                                                >
+                                                    <List>
+                                                        <ListItem onClick={this.clearChannelMessages}>
+                                                            <ListContent>
+                                                                <ListDescription as='a'>Clear channel</ListDescription>
+                                                            </ListContent>
+                                                        </ListItem>
+                                                    </List>
+                                                </Popup>
+                                            </div>
                                         </div>
                                         <div className="chat active-chat">
+                                            {
+                                                this.state.clearHistoryLoader && (
+                                                    <div className="centered">
+                                                        <Spinner size="large"></Spinner>
+                                                    </div>
+                                                )
+                                            }
                                             <ChatMessageGroup />
                                         </div>
                                         <div className="write">
