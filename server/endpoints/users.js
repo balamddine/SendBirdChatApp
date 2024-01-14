@@ -24,7 +24,7 @@ app.get("/users", async (req, res) => {
       },
       {
         $lookup: {
-          from: "Users",
+          from: "users",
           localField: "Channels.toUserId",
           foreignField: "_id",
           as: "Users"

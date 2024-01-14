@@ -96,6 +96,7 @@ const userStore = create<IState & IActions>()((set, get) => ({
             let pageSize = get().pageSize;
             let exclude = get().usersData._id
             const responce = await UsersLayer.getActiveChats(currentPage, pageSize, exclude);
+            console.log(responce)
             if (responce.data) {
                 let channels = responce.data[0].Channels;
                 let users = responce.data[0].Users;
@@ -127,6 +128,7 @@ const userStore = create<IState & IActions>()((set, get) => ({
                             console.log(ex)
                         }
                     }));
+                    console.log(results)
                     if (results) {
                         set({ isChatRoomLoading: false, usersL: results, maxRowCount: responce.data.maxRowCount });
                     }
@@ -135,7 +137,7 @@ const userStore = create<IState & IActions>()((set, get) => ({
             }
         }
         catch (error) {
-            set({ usersL: undefined, error: error, isFormLoading: false }); // Set loading to false on error
+            set({ usersL: undefined, error: error, isChatRoomLoading: false }); // Set loading to false on error
         }
     },
     getById: async (_id: any) => {
