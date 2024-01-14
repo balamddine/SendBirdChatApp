@@ -48,7 +48,7 @@ export class SendBirdclss {
         return lastWeekMillis
     }
     static getProfilePic(user: any) {
-        let folderPth = "assets/users/"
+        let folderPth = "assets/Users/"
         let pic = Constants.DEFAULT_USER_PROFILE_IMAGE
         if (user) {
             pic = user.ProfilePic ? folderPth + user.ProfilePic : Constants.DEFAULT_USER_PROFILE_IMAGE;
