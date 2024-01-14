@@ -15,6 +15,9 @@ app.use(cors());
 app.get("/", (req, res) => {
     res.send("This is the chat project server.")
 });
+app.get("/test", (req, res) => {
+  res.send("This is the chat project server.")
+});
 
 http.listen(PORT, () => {
   console.log(`Server listening on ${PORT}`);
