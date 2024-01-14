@@ -1,34 +1,17 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
-    "jsx": "preserve",
-    "module": "ESNext",
-    "declaration": true,
-    "declarationDir": "types",
-    "sourceMap": true,
-    "outDir": "dist",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "emitDeclarationOnly": true,
-    "resolveJsonModule": true,
-    "allowJs": true,
+    "jsx": "react",
+    "module": "commonjs",
     "noImplicitAny": true,
-    "noImplicitThis": true,
-    "strictNullChecks": true,
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "isolatedModules": true,
+    "outDir": "./dist/",
+    "preserveConstEnums": true,
+    "removeComments": true,
+    "sourceMap": true,
+    "target": "es5",
+    "resolveJsonModule": true,
+    "esModuleInterop": true
   },
   "include": [
-    "src"
+    "./src/index.tsx"
   ]
 }

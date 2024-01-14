@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const http = require('http').createServer(app);
 
-app.use(express.static('public'));
+app.use(express.static('dist'));
 app.use(bodyParser.json({ limit: '50mb' }));
 
 app.use(express.json());

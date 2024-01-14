@@ -8,9 +8,7 @@ interface IProps {
 }
 class ChatMessageGroup extends React.Component<IProps, any> {
     private ismounted = true;
-    state = {
-        messagesGroup: []
-    }
+   
     componentDidMount() {
         if (!this.ismounted) return;
     }
