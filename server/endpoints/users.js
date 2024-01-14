@@ -7,7 +7,6 @@ const { Types: { ObjectId } } = require('mongoose');
 app.get("/users", async (req, res) => {
   let isconnect = await client.connect();
   if (isconnect) {
-console.log(isconnect)
     const currentPage = req.query["currentPage"] ? parseInt(req.query["currentPage"]) : 1;
     const pageSize = req.query["pageSize"] ? parseInt(req.query["pageSize"]) : 10000;
     const userid = req.query["userid"] ? req.query["userid"] : null;
@@ -46,7 +45,9 @@ console.log(isconnect)
 app.post("/users/get", async (req, res) => {
   let isconnect = await client.connect();
   if (isconnect) {
+   
     let dte = await usersModel.findOne(req.body);
+   
     if (dte) {
       res.status(200).send(dte)
     }
@@ -61,8 +62,8 @@ app.get("/users/:id", async (req, res) => {
   let _id = req.params.id;
 
   if (isconnect) {
-    console.log(isconnect)
-    let dte = await usersModel.findById(_id);
+  
+    let dte = await usersModel.findById(new ObjectId(_id));
     if (dte) {
       res.status(200).send(dte)
     }

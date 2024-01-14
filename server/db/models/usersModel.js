@@ -34,6 +34,6 @@ var mSchema = new mongoose.Schema({
 }, {
     versionKey: false // You should be aware of the outcome after set to false
 });
-const mUsers = mongoose.model("Users", mSchema, "Users")
+const mUsers = mongoose.model("users", mSchema)
 
 module.exports = mUsers
