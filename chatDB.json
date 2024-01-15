@@ -1,0 +1,34 @@
+{
+    "_id" : ObjectId("659d3cfb7a0f835f5cb468e3"),
+    "Username" : "bassem",
+    "FirstName" : "Bassem",
+    "LastName" : "Alameddine",
+    "Password" : "bassem",
+    "isDeleted" : false,
+    "SendBirdId" : "1",
+    "StatusText" : ".",
+    "ProfilePic" : "bassem.png",
+    "Channels" : [
+        {
+            "toUserId" : ObjectId("659e9a027a0f835f5cb46901"),
+            "url" : "sendbird_group_channel_208215769_89dda4a153f20eca1707aa85973837e70fe2ea0b"
+        }
+    ]
+}
+{
+    "_id" : ObjectId("659e9a027a0f835f5cb46901"),
+    "Username" : "Nour",
+    "FirstName" : "Nour",
+    "LastName" : "admin",
+    "Password" : "nour",
+    "isDeleted" : false,
+    "SendBirdId" : "2",
+    "StatusText" : "nour status text",
+    "ProfilePic" : "admin.png",
+    "Channels" : [
+        {
+            "toUserId" : ObjectId("659d3cfb7a0f835f5cb468e3"),
+            "url" : "sendbird_group_channel_208215769_89dda4a153f20eca1707aa85973837e70fe2ea0b"
+        }
+    ]
+}
