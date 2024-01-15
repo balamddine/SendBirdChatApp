@@ -8,6 +8,6 @@ password: bassem
 Username: nour
 password: nour
 
-# run this project for development with
+# Run this project for development with
  - npm run start-react
  - npm run start-server 
